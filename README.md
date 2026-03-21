@@ -26,6 +26,10 @@ Feel free to explore my articles below. Let's learn and grow together! 🚀
 |   RabbitMQ   |   [read](./rabbitmq.md)  |
 |   Redis   |   [read](./redis.md)  |
 |   Tenents   |   [read](./tenents.md)  |
+|   Open SSL (Python & C#)   |   [read](https://github.com/hmza-smha/openssl-license)  |
+|   SSL Certificate with NGINX   |   [read](./ssl_cert_nginx.md)  |
+|   Master LLMs   |   [read](https://github.com/hmza-smha/ai-notes)  |
+|   MCP Server (Python)   |   [read](https://github.com/hmza-smha/mcp-poc)  |
 |   Chunks Reranker   |   [read](./chunks_reranker.md)  |
 |   Monolith, DDD, plugins   |   [read](./monolith_ddd_plugins.md)  |
 |   Features as Plugins   |   [read](./feature_as_plugins.md)  |
