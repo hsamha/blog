@@ -1,6 +1,6 @@
 [Back](./README.md)
 
-# rabbitmq
+# RabbitMQ
 
 **RabbitMQ** is an **open-source message broker** that allows different parts of a system to communicate with each other by sending and receiving messages.
 
