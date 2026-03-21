@@ -23,4 +23,4 @@ Feel free to explore my articles below. Let's learn and grow together! 🚀
 |   Title   |   Link    |
 |   :---    |   :----:  |
 |   Redis   |   [read](./redis.md)  |
-|   Monolith, DDD, plugins   |   [read](./redis.md)  |
+|   Monolith, DDD, plugins   |   [read](./monolith_ddd_plugins.md)  |
