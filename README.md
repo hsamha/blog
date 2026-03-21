@@ -22,6 +22,7 @@ Feel free to explore my articles below. Let's learn and grow together! 🚀
 
 |   Title   |   Link    |
 |   :---    |   :----:  |
+|   GPT Finetuning  |   [read](https://github.com/hmza-smha/gpt-finetuning)  |
 |   Notes about FastAPI   |   [read](./notes_in_fastapi.md)  |
 |   NLP Evolution   |   [read](./nlp_evolution.md)  |
 |   SSO   |   [read](./sso.md)  |
