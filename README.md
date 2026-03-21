@@ -32,3 +32,4 @@ Feel free to explore my articles below. Let's learn and grow together! 🚀
 |   User Roles   |   [read](./user_roles.md)  |
 |   Claims, Roles, and Policies   |   [read](./claims_role_policy.md)  |
 |   How to Understand ERD   |   [read](./how_to_understand_erd.md)  |
+|   Become Next Level   |   [read](./become_next_level.md)  |
