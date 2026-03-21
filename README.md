@@ -1,6 +1,6 @@
 # Welcome!
 
-<img align="right" src="./profile.png" alt="HamZa Samha" width="200" style="border-radius: 50%; margin-left: 20px;"/>
+<img align="right" src="./me/profile.png" alt="HamZa Samha" width="200" style="border-radius: 50%; margin-left: 20px;"/>
 
 Hi, I'm **HamZa Samha** 👋
 
@@ -13,6 +13,8 @@ Here, you'll find articles on:
 - ⚙️ Various technologies I work with
 
 Feel free to explore my articles below. Let's learn and grow together! 🚀
+
+📄 **[Download My CV](./me/HamZa%20Samha%20(CV).pdf)**
 
 ---
 
