@@ -26,7 +26,9 @@ Feel free to explore my articles below. Let's learn and grow together! 🚀
 |   RabbitMQ   |   [read](./rabbitmq.md)  |
 |   Redis   |   [read](./redis.md)  |
 |   Tenents   |   [read](./tenents.md)  |
+|   Chunks Reranker   |   [read](./chunks_reranker.md)  |
 |   Monolith, DDD, plugins   |   [read](./monolith_ddd_plugins.md)  |
 |   Features as Plugins   |   [read](./feature_as_plugins.md)  |
 |   User Roles   |   [read](./user_roles.md)  |
+|   Claims, Roles, and Policies   |   [read](./claims_role_policy.md)  |
 |   How to Understand ERD   |   [read](./how_to_understand_erd.md)  |
