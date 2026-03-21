@@ -37,3 +37,4 @@ Feel free to explore my articles below. Let's learn and grow together! 🚀
 |   Claims, Roles, and Policies   |   [read](./claims_role_policy.md)  |
 |   How to Understand ERD   |   [read](./how_to_understand_erd.md)  |
 |   Become Next Level   |   [read](./become_next_level.md)  |
+|   Text to SQL Design   |   [read](./text_to_sql.md)  |
