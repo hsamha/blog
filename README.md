@@ -1,8 +1,26 @@
 # Welcome!
 
-<img align="right" src="./me/profile.png" alt="HamZa Samha" width="200" style="border-radius: 50%; margin-left: 20px;"/>
+<style>
+  .profile-img {
+    float: right;
+    width: 200px;
+    border-radius: 50%;
+    margin-left: 20px;
+  }
+  
+  @media (max-width: 768px) {
+    .profile-img {
+      float: none;
+      display: block;
+      width: 120px;
+      margin: 0 auto 20px;
+    }
+  }
+</style>
 
-Hi, I'm **HamZa Samha** 👋
+<img class="profile-img" src="./me/profile.png" alt="HamZa Samha"/>
+
+### Hi, I'm **HamZa Samha** 👋
 
 I'm a software engineer 💻 passionate about building scalable systems and solving complex technical challenges. This is my personal space, where I share articles and deep dives into software engineering topics.
 
