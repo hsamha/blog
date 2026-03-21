@@ -25,6 +25,7 @@ Feel free to explore my articles below. Let's learn and grow together! 🚀
 |   SSO   |   [read](./sso.md)  |
 |   RabbitMQ   |   [read](./rabbitmq.md)  |
 |   Redis   |   [read](./redis.md)  |
+|   Tenents   |   [read](./tenents.md)  |
 |   Monolith, DDD, plugins   |   [read](./monolith_ddd_plugins.md)  |
 |   Features as Plugins   |   [read](./feature_as_plugins.md)  |
 |   User Roles   |   [read](./user_roles.md)  |
