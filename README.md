@@ -30,7 +30,7 @@ Here, you'll find articles on:
 - 📐 Software architecture
 - ⚙️ Various technologies I work with
 
-📄 **[View My CV](./me/HamZa%20Samha%20(CV).pdf)**
+💼 **[Get in touch](https://www.linkedin.com/in/hamza-samha/)**
 
 Feel free to explore my articles below. 🚀
 
