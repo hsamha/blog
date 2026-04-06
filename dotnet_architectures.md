@@ -506,7 +506,7 @@ Think of it like this:
 
 # 🏗️ 1. Full Solution Structure
 
-```text id="clean-modular-structure"
+```txt
 MyApp.sln
 
 /src
@@ -537,7 +537,7 @@ MyApp.sln
 
 Each module is **a mini Clean Architecture**:
 
-```text id="orders-module-structure"
+```txt
 Modules
  └── Orders
       ├── Domain
@@ -589,7 +589,7 @@ Modules
 
 These are **shared but controlled carefully**:
 
-```text id="building-blocks-structure"
+```txt
 BuildingBlocks
  ├── Domain
  │    ├── BaseEntity.cs
@@ -635,13 +635,13 @@ IUserService.GetUser();
 
 #### 2. Via Domain Events
 
-```text id="domain-event-flow"
+```txt
 OrderCreatedEvent → handled by Payments module
 ```
 
 #### 3. Via Integration Events (future microservices)
 
-```text id="integration-event-flow"
+```txt
 OrderCreatedIntegrationEvent → Message Broker → PaymentService
 ```
 
@@ -651,7 +651,7 @@ OrderCreatedIntegrationEvent → Message Broker → PaymentService
 
 Inside each module:
 
-```text id="dependency-direction"
+```txt
 Domain ← Application ← Infrastructure ← API
 ```
 
@@ -685,7 +685,7 @@ builder.Services.AddPaymentsModule();
 
 You can literally extract like this:
 
-```text id="microservice-extraction"
+```txt
 Before:
  └── Monolith
       ├── Orders
@@ -732,7 +732,7 @@ Minimal changes needed ✅
 
 # 🎯 Final Mental Model
 
-```text id="final-mental-model"
+```txt
 [ Modular Monolith ]
         +
 [ Clean Architecture per module ]
