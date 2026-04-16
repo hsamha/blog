@@ -11,6 +11,7 @@
 | **Full-text Index**   | Search      | Enables text search                  | Searching text fields              | Search speed             | Limited use cases               |
 | **Columnstore Index** | Analytics   | Stores data column-wise              | Aggregations, OLAP                 | Scan & aggregation speed | Slower writes                   |
 
+[Details](https://github.com/hsamha/blog/blob/main/database_performance2.md#-sql-server-index-types-comparison)
 ---
 
 | Technique         | Category  | What It Does                       | When to Use                  | What It Improves         | Trade-offs       |
@@ -20,6 +21,7 @@
 | **Read Replicas** | Scaling   | Copies DB for reads                | High read traffic            | Read throughput          | Replication lag  |
 | **Clustering**    | Scaling   | Multiple DB nodes working together | High availability + scale    | Fault tolerance, scaling | Complex setup    |
 
+[Details](https://github.com/hsamha/blog/blob/main/database_performance2.md#-data-scaling--availability-techniques-comparison)
 ---
 
 | Technique                       | Category      | What It Does             | When to Use        | What It Improves   | Trade-offs         |
@@ -28,6 +30,7 @@
 | **Materialized Views**          | Precompute    | Stores query results     | Heavy aggregations | Instant reads      | Needs refresh      |
 | **Denormalization**             | Schema design | Reduces joins            | Read-heavy systems | Faster queries     | Data duplication   |
 
+[Details](https://github.com/hsamha/blog/blob/main/database_performance2.md#-performance-optimization-techniques-comparison)
 ---
 
 | Technique                          | Category        | What It Does             | When to Use      | What It Improves    | Trade-offs         |
@@ -36,6 +39,7 @@
 | **Query Routing (ProxySQL)**       | Traffic mgmt    | Routes reads/writes      | Using replicas   | Load balancing      | Extra layer        |
 | **Parallel Execution**             | Execution       | Runs queries in parallel | Large scans      | Faster processing   | CPU usage          |
 
+[Details](https://github.com/hsamha/blog/blob/main/database_performance2.md#-database-performance--scaling-techniques)
 ---
 
 | Technique            | Category       | What It Does        | When to Use     | What It Improves  | Trade-offs              |
@@ -44,6 +48,7 @@
 | **Archiving**        | Data lifecycle | Moves old data out  | Historical data | Smaller active DB | Access complexity       |
 | **Batch Processing** | Workload       | Processes in chunks | Heavy writes    | Stability         | Latency (not real-time) |
 
+[Details](https://github.com/hsamha/blog/blob/main/database_performance2.md#-data-optimization--processing-techniques)
 ---
 
 | Technique                         | Category    | What It Does           | When to Use          | What It Improves    | Trade-offs      |
@@ -52,6 +57,7 @@
 | **In-Memory DB (Redis)**          | Storage     | Keeps data in RAM      | Ultra-fast access    | Latency             | Cost (RAM)      |
 | **Hardware Scaling**              | Infra       | Better CPU/RAM/SSD     | Resource bottlenecks | Overall performance | Cost            |
 
+[Details](https://github.com/hsamha/blog/blob/main/database_performance2.md#-scaling--performance-technologies)
 ---
 
 # 🧭 Quick Decision Table
