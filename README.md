@@ -40,6 +40,7 @@ Feel free to explore my articles below. 🚀
 
 |   Title   |   Link    |
 |   :---    |   :----:  |
+|   Dense, Sparse, Dimension, Metric (Cosine, Euclidean, DotProduct)  |   [read](./vdb_vector_embedding.md)  |
 |   Database Performance Techniques Cheat Sheet  |   [read](./database_performance.md)  |
 |   Dynamic Authorization  |   [read](./dynamic_authorization.md)  |
 |   How to Implement Real-Time Permission Updates with ASP.NET, Angular & SignalR  |   [read](./dynamic_auth2.md)  |
