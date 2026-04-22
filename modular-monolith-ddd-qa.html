@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Building a Modular Monolith with DDD</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@400;500&family=Lora:ital,wght@0,400;0,600;1,400&display=swap');
+
+  [data-theme="dark"] {
+    --bg:          #0d0d0d;
+    --surface:     #141414;
+    --border:      #222;
+    --accent:      #e8c547;
+    --accent2:     #5be3c1;
+    --accent3:     #f06a6a;
+    --text:        #e8e4dc;
+    --muted:       #6b6760;
+    --code-bg:     #1a1a1a;
+    --h1-color:    #ffffff;
+    --q-text:      #ffffff;
+    --a-text:      #ccc8c0;
+    --card-hover:  #333;
+    --grain-op:    0.4;
+    --cls-color:   #a78bfa;
+  }
+
+  [data-theme="light"] {
+    --bg:          #f5f2eb;
+    --surface:     #fffef9;
+    --border:      #ddd8cc;
+    --accent:      #b8891a;
+    --accent2:     #1a8a73;
+    --accent3:     #c94040;
+    --text:        #2a2620;
+    --muted:       #8a8278;
+    --code-bg:     #eceae2;
+    --h1-color:    #1a1612;
+    --q-text:      #1a1612;
+    --a-text:      #3d3830;
+    --card-hover:  #bbb5a8;
+    --grain-op:    0.12;
+    --cls-color:   #7c3aed;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Lora', Georgia, serif;
+    line-height: 1.75;
+    min-height: 100vh;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 1000;
+    opacity: var(--grain-op);
+  }
+
+  /* ── THEME TOGGLE ── */
+  .theme-toggle {
+    position: fixed; top: 24px; right: 28px;
+    z-index: 2000;
+    display: flex; align-items: center; gap: 8px;
+    cursor: pointer; user-select: none;
+  }
+  .tg-icon { font-size: 14px; line-height: 1; }
+  .tg-track {
+    width: 42px; height: 23px; border-radius: 12px;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    position: relative;
+    transition: background 0.3s, border-color 0.3s;
+  }
+  .tg-knob {
+    position: absolute; top: 3px; left: 3px;
+    width: 15px; height: 15px; border-radius: 50%;
+    background: var(--accent);
+    transition: transform 0.25s cubic-bezier(.4,0,.2,1), background 0.3s;
+  }
+  [data-theme="light"] .tg-knob { transform: translateX(19px); }
+
+  /* ── HEADER ── */
+  header {
+    padding: 84px 52px 64px;
+    border-bottom: 1px solid var(--border);
+    position: relative; overflow: hidden;
+    transition: border-color 0.3s;
+  }
+  header::after {
+    content: '';
+    position: absolute; top: -60px; right: -60px;
+    width: 420px; height: 420px;
+    background: radial-gradient(circle, rgba(232,197,71,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .header-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 22px;
+    display: flex; align-items: center; gap: 10px;
+    transition: color 0.3s;
+  }
+  .header-eyebrow::before {
+    content: ''; display: inline-block;
+    width: 26px; height: 1px; background: var(--accent);
+    transition: background 0.3s;
+  }
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2.1rem, 5vw, 3.9rem);
+    font-weight: 800; line-height: 1.08;
+    max-width: 680px; color: var(--h1-color);
+    transition: color 0.3s;
+  }
+  h1 em { font-style: normal; color: var(--accent); }
+  .subtitle {
+    margin-top: 20px; color: var(--muted);
+    font-size: 1.04rem; font-style: italic; max-width: 540px;
+    transition: color 0.3s;
+  }
+  .badge {
+    margin-top: 22px; display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--accent); background: rgba(232,197,71,0.09);
+    border: 1px solid rgba(232,197,71,0.22);
+    padding: 4px 13px; border-radius: 2px;
+    transition: color 0.3s, background 0.3s, border-color 0.3s;
+  }
+
+  /* ── MAIN ── */
+  main { max-width: 900px; margin: 0 auto; padding: 56px 52px 120px; }
+
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--muted); margin-top: 76px; margin-bottom: 28px;
+    padding-bottom: 11px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+    transition: color 0.3s, border-color 0.3s;
+  }
+  .section-label span { color: var(--accent); }
+
+  /* ── CARDS ── */
+  .qa-card {
+    margin-bottom: 18px;
+    border: 1px solid var(--border); border-radius: 3px;
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .qa-card:hover {
+    border-color: var(--card-hover);
+    box-shadow: 0 2px 18px rgba(0,0,0,0.07);
+  }
+  .question {
+    padding: 21px 24px; background: var(--surface);
+    cursor: pointer; display: flex; align-items: flex-start;
+    gap: 15px; user-select: none;
+    transition: background 0.3s;
+  }
+  .q-number {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--accent); white-space: nowrap;
+    margin-top: 2px; min-width: 30px;
+    transition: color 0.3s;
+  }
+  .q-text {
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 0.96rem; color: var(--q-text);
+    line-height: 1.4; flex: 1;
+    transition: color 0.3s;
+  }
+  .q-icon {
+    font-size: 20px; font-weight: 300; color: var(--muted);
+    margin-top: 0; line-height: 1; flex-shrink: 0;
+    transition: transform 0.25s, color 0.2s;
+  }
+  .qa-card.open .q-icon { transform: rotate(45deg); color: var(--accent); }
+
+  .answer {
+    display: none;
+    padding: 0 24px 24px 69px;
+    background: var(--bg); border-top: 1px solid var(--border);
+    transition: background 0.3s, border-color 0.3s;
+  }
+  .qa-card.open .answer { display: block; animation: fadeIn 0.2s ease; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .answer p  { margin-top: 17px; font-size: 0.94rem; color: var(--a-text); transition: color 0.3s; }
+  .answer ul, .answer ol { margin-top: 13px; margin-left: 20px; }
+  .answer li { margin-bottom: 8px; font-size: 0.92rem; color: var(--a-text); transition: color 0.3s; }
+  .answer strong { color: var(--text); font-weight: 600; }
+  .answer em     { color: var(--accent2); font-style: normal; }
+  .answer .warn  { color: var(--accent3); font-style: normal; }
+
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-left: 3px solid var(--accent); border-radius: 2px;
+    padding: 15px 17px; margin-top: 14px;
+    overflow-x: auto; font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem; line-height: 1.7; color: var(--a-text);
+    transition: background 0.3s, border-color 0.3s;
+  }
+  pre .kw  { color: var(--accent); }
+  pre .cm  { color: var(--muted); font-style: italic; }
+  pre .str { color: var(--accent2); }
+  pre .cls { color: var(--cls-color); }
+
+  .callout {
+    margin-top: 15px; padding: 13px 17px;
+    background: rgba(232,197,71,0.06);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 2px 2px 0;
+    font-size: 0.87rem; color: var(--muted); font-style: italic;
+    transition: background 0.3s, color 0.3s;
+  }
+  [data-theme="light"] .callout { background: rgba(184,137,26,0.07); }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.82rem; }
+  th {
+    background: var(--code-bg); color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+    padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--border);
+    transition: background 0.3s;
+  }
+  td {
+    padding: 9px 12px; border-bottom: 1px solid var(--border);
+    color: var(--a-text); vertical-align: top;
+    transition: color 0.3s, border-color 0.3s;
+  }
+  tr:last-child td { border-bottom: none; }
+
+  code {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.79em;
+    background: var(--code-bg); padding: 2px 6px; border-radius: 2px;
+    color: var(--accent2); transition: background 0.3s;
+  }
+
+  @media (max-width: 640px) {
+    header { padding: 60px 22px 40px; }
+    main   { padding: 36px 22px 80px; }
+    .answer { padding: 0 14px 18px 14px; }
+    .theme-toggle { top: 14px; right: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+  <span class="tg-icon">🌙</span>
+  <div class="tg-track"><div class="tg-knob"></div></div>
+  <span class="tg-icon">☀️</span>
+</div>
+
+<header>
+  <div class="header-eyebrow">Builder's Inner Monologue</div>
+  <h1>Building a Modular Monolith<br/>with <em>DDD</em></h1>
+  <p class="subtitle">The real questions a developer asks themselves — before writing a single line of code.</p>
+  <div class="badge">35 Questions · 9 Sections</div>
+</header>
+
+<main>
+
+  <!-- ═══════════════════════════ 01 ═══ -->
+  <div class="section-label"><span>01</span> The Big Picture</div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.01</span>
+      <span class="q-text">Why am I building a Modular Monolith and not microservices?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p>Microservices solve <strong>scale and team autonomy problems</strong> — but introduce enormous operational complexity: distributed tracing, network failures, eventual consistency everywhere, and independent deployments. If you don't have those problems yet, you're paying the cost without the benefit.</p>
+      <p>A Modular Monolith gives you <strong>clean internal boundaries</strong> while keeping deployment simple. You can always extract a module into a microservice later — you can't easily untangle a messy monolith.</p>
+      <div class="callout">Start with a Modular Monolith. Migrate a module to a microservice only when a specific, measurable problem forces you to.</div>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.02</span>
+      <span class="q-text">What are my modules? How do I identify them?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p>Modules map to <strong>Bounded Contexts</strong> in DDD — self-contained slices of the business where a specific model and language applies. Ask yourself:</p>
+      <ul>
+        <li>What are the core business capabilities? (Orders, Catalog, Customers, Payments)</li>
+        <li>Where does the meaning of a word change? "Customer" in Billing ≠ "Customer" in Shipping</li>
+        <li>What could change independently without affecting everything else?</li>
+      </ul>
+      <p>Don't over-split — a module should represent a meaningful, cohesive business capability, not a technical layer.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.03</span>
+      <span class="q-text">What's the one rule I absolutely cannot break between modules?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p><strong>Modules must never call each other directly.</strong> No method calls, no shared repositories, no shared database tables. The only allowed cross-module communication:</p>
+      <ul>
+        <li><em>Asynchronous events</em> via an Events Bus (RabbitMQ, Kafka, etc.)</li>
+        <li><em>Public integration event contracts</em> — only the <code>IntegrationEvents</code> assembly of another module, never its internals</li>
+      </ul>
+      <div class="callout">If you allow direct calls, your "modules" are just folders. You'll have a distributed monolith in disguise — all the coupling, none of the clarity.</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ 02 ═══ -->
+  <div class="section-label"><span>02</span> Module Internals</div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.04</span>
+      <span class="q-text">How do I structure the inside of a module?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p>Each module follows <strong>Clean Architecture</strong> split into four assemblies:</p>
+      <table>
+        <tr><th>Assembly</th><th>Responsibility</th></tr>
+        <tr><td><em>Domain</em></td><td>Business rules — Entities, Aggregates, Value Objects, Domain Events</td></tr>
+        <tr><td><em>Application</em></td><td>Use cases — Commands, Queries, Event Handlers, Validators</td></tr>
+        <tr><td><em>Infrastructure</em></td><td>DB access, Event Bus, Background jobs, Module initialization</td></tr>
+        <tr><td><em>IntegrationEvents</em></td><td>Public event contracts other modules can subscribe to</td></tr>
+      </table>
+      <p style="margin-top:14px">Dependency direction: <em>Infrastructure → Application → Domain</em>. Domain has zero external dependencies.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.05</span>
+      <span class="q-text">How does the API talk to a module? Do I expose the whole module?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p>No — the API only sees a <strong>thin interface</strong> per module with exactly three methods:</p>
+      <pre><span class="kw">public interface</span> <span class="cls">IOrdersModule</span>
+{
+    Task&lt;TResult&gt; ExecuteCommandAsync&lt;TResult&gt;(<span class="cls">ICommand</span>&lt;TResult&gt; command);
+    Task ExecuteCommandAsync(<span class="cls">ICommand</span> command);
+    Task&lt;TResult&gt; ExecuteQueryAsync&lt;TResult&gt;(<span class="cls">IQuery</span>&lt;TResult&gt; query);
+}</pre>
+      <p>The API calls <code>ExecuteCommandAsync(new CreateOrderCommand(...))</code> and has no idea what runs inside. This is the module's entire public surface.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.06</span>
+      <span class="q-text">Each module has its own IoC container — why not just one global one?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p>A single DI container makes all services from all modules visible to each other — it's trivially easy to inject something you shouldn't, breaking module isolation silently.</p>
+      <p>Each module's own <strong>Composition Root</strong> enforces that its internal services are invisible to other modules, each module manages its own lifecycle, and initialization is explicit via <code>Initialize(...)</code> called by API startup.</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ 03 ═══ -->
+  <div class="section-label"><span>03</span> Domain Model</div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.07</span>
+      <span class="q-text">What goes in the Domain layer? What doesn't?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p><strong>In Domain:</strong> Aggregate Roots, Entities, Value Objects, Domain Events, Domain Services, Business Rules.</p>
+      <p><span class="warn">Not in Domain:</span> anything touching infrastructure — no EF Core, no HTTP clients, no loggers, no repositories. The domain is pure C# POCOs with zero external dependencies. This is <strong>Persistence Ignorance</strong>.</p>
+      <div class="callout">A good test: can you run the entire Domain layer in a unit test with zero mocking of external dependencies? If yes, you've done it right.</div>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.08</span>
+      <span class="q-text">What is an Aggregate Root and how do I design one?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p>An Aggregate Root is the <strong>single gatekeeper</strong> for a cluster of related objects. You never modify child objects directly:</p>
+      <pre><span class="cm">// ❌ BAD — bypasses invariants</span>
+order.Items.Add(<span class="kw">new</span> <span class="cls">OrderItem</span>(productId, quantity));
+
+<span class="cm">// ✅ GOOD — root enforces rules</span>
+order.AddItem(productId, quantity);
+<span class="cm">// Inside: validate business rules, raise domain event</span></pre>
+      <p>The root enforces business invariants, raises Domain Events, and controls access to children. Design rule: <strong>load the whole aggregate at once, save the whole aggregate at once</strong>.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.09</span>
+      <span class="q-text">I keep using Guid and string everywhere. Is there a better way?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p>Use <strong>Value Objects</strong> to avoid Primitive Obsession:</p>
+      <pre><span class="kw">public record</span> <span class="cls">OrderId</span>(Guid Value)
+{
+    <span class="kw">public static</span> <span class="cls">OrderId</span> New() =&gt; <span class="kw">new</span>(Guid.NewGuid());
+}
+
+<span class="cm">// Compile-time safety — can't accidentally pass wrong ID type:</span>
+Order order = _repo.GetById(<span class="kw">new</span> <span class="cls">CustomerId</span>(id)); <span class="cm">// ❌ type mismatch</span></pre>
+      <p>Apply to all domain concepts: <em>Money</em>, <em>Email</em>, <em>Address</em>. Catches entire classes of bugs at compile time and makes code self-documenting.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.10</span>
+      <span class="q-text">Two users edit the same record at the same time — who wins?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p>Without protection the last write silently overwrites the first — a "lost update." The solution is <strong>Optimistic Concurrency via Entity Version</strong>:</p>
+      <pre>User A reads Order (Version = 1)
+User B reads Order (Version = 1)
+
+User A saves → <span class="kw">WHERE</span> Id=1 <span class="kw">AND</span> Version=1 → success → Version=2 ✅
+User B saves → <span class="kw">WHERE</span> Id=1 <span class="kw">AND</span> Version=1 → <span class="warn">0 rows affected</span> ❌ → conflict</pre>
+      <p>User B gets an exception, re-fetches the updated data, and retries. No silent data loss. No database row locks needed.</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ 04 ═══ -->
+  <div class="section-label"><span>04</span> CQRS</div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.11</span>
+      <span class="q-text">Why separate Commands from Queries? Isn't it more code for the same result?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p>Yes, more code — but reads and writes have <strong>fundamentally different needs</strong>:</p>
+      <table>
+        <tr><th></th><th>Commands (Write)</th><th>Queries (Read)</th></tr>
+        <tr><td>Model</td><td>Rich domain model (DDD)</td><td>Flat DTOs, raw SQL</td></tr>
+        <tr><td>Focus</td><td>Business rules, validation</td><td>Projections only</td></tr>
+        <tr><td>Side effects</td><td>Yes — changes state</td><td>Never — read only</td></tr>
+      </table>
+      <p style="margin-top:13px">Without CQRS, your query handler loads a full Aggregate just to return <code>{ orderId, status, total }</code>. Wasteful and fragile. With CQRS, a query runs one targeted SQL query and returns a DTO.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.12</span>
+      <span class="q-text">How does a Command actually get processed? What's the pipeline?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p>The Command flows through a <strong>decorator chain</strong> before reaching your handler:</p>
+      <pre>API Controller
+  → module.ExecuteCommandAsync(<span class="kw">new</span> <span class="cls">CreateOrderCommand</span>(...))
+      → <span class="cls">LoggingDecorator</span>        <span class="cm">// logs start, args, errors</span>
+          → <span class="cls">ValidationDecorator</span>    <span class="cm">// runs FluentValidation</span>
+              → <span class="cls">UnitOfWorkDecorator</span>    <span class="cm">// wraps in DB transaction</span>
+                  → <span class="cls">CreateOrderHandler</span> <span class="cm">// your business logic</span>
+              <span class="cm">// UoW commits + dispatches domain events</span></pre>
+      <p>Your handler knows nothing about logging, validation, or transactions. Pure <strong>Single Responsibility</strong>.</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ 05 ═══ -->
+  <div class="section-label"><span>05</span> Events</div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.13</span>
+      <span class="q-text">Domain Event vs Integration Event — when do I use each?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <ul>
+        <li><em>Domain Event</em> = <strong>"something happened, handle it within this module"</strong> — synchronous, in-process, same transaction</li>
+        <li><em>Integration Event</em> = <strong>"something happened, tell the outside world"</strong> — asynchronous, via message bus, separate transaction</li>
+      </ul>
+      <pre><span class="cls">CreateOrderCommand</span>
+  → Order raises <span class="cls">OrderCreatedDomainEvent</span>
+      → updates inventory (same transaction)
+      → schedules <span class="cls">OrderCreatedIntegrationEvent</span>
+          → published to Event Bus (after commit)
+              → Email module, Shipping module react</pre>
+      <div class="callout">A Domain Event never leaves the module. An Integration Event is the module's public announcement to the world.</div>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.14</span>
+      <span class="q-text">What if the app crashes after saving to the DB but before publishing the event?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p>Classic <strong>dual-write problem</strong> — the order is saved but the event is never sent. Silent data loss. The solution is the <strong>Outbox Pattern</strong>:</p>
+      <ul>
+        <li>Save the integration event to <code>OutboxMessages</code> table <strong>in the same transaction</strong> as the business operation</li>
+        <li>A background job reads unprocessed messages and publishes them to the Event Bus</li>
+        <li>Once published, the message is marked processed</li>
+      </ul>
+      <p>If the app crashes, the Outbox message survives. On restart, the background job retries. <em>At-least-once delivery, guaranteed.</em></p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.15</span>
+      <span class="q-text">What if I receive the same integration event twice?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p>The <strong>Inbox Pattern</strong> solves this:</p>
+      <ul>
+        <li>When an event arrives, check <code>InboxMessages</code> for its unique event ID</li>
+        <li>If already processed → skip it silently</li>
+        <li>If new → process it and record it in the Inbox</li>
+      </ul>
+      <p>Outbox (producer) + Inbox (consumer) = <em>exactly-once processing semantics</em> even on an unreliable message bus.</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ 06 ═══ -->
+  <div class="section-label"><span>06</span> Advanced Patterns</div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.16</span>
+      <span class="q-text">I need to know the full history of an entity, not just its current state. How?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p><strong>Event Sourcing</strong> — store every event that ever happened and derive current state by replaying them:</p>
+      <pre><span class="cm">// Traditional DB: you only see the result</span>
+Order { Status: <span class="str">"Shipped"</span>, Total: 350 }
+
+<span class="cm">// Event Sourcing: you see everything</span>
+[OrderCreated, ItemAdded, DiscountApplied, PaymentConfirmed, Shipped]
+<span class="cm">// Replay → derive current state</span></pre>
+      <div class="callout">Only use Event Sourcing where auditability and full history are genuine business requirements — financial transactions, legal records, etc.</div>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.17</span>
+      <span class="q-text">Some tasks are slow — I don't want the user to wait. How do I handle async work inside a module?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p>Use <strong>Internal Commands</strong> — scheduled in the same transaction as the originating command, but processed asynchronously by a background job without crossing module boundaries:</p>
+      <pre><span class="cm">// During CreateOrder handling:</span>
+_commandScheduler.Schedule(
+    <span class="kw">new</span> <span class="cls">SendOrderConfirmationInternalCommand</span>(order.Id)
+);
+<span class="cm">// Saved to DB in same transaction. Background job picks it up.</span></pre>
+      <p>User gets a fast response. Slow work (PDF generation, emails, third-party APIs) happens in the background. The <code>UnitOfWorkDecorator</code> marks them processed to prevent duplicate execution.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.18</span>
+      <span class="q-text">Catalog has a "Product." Orders also has a "Product." Should they share a model?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p><span class="warn">No.</span> Each module has a completely different view:</p>
+      <ul>
+        <li><strong>Catalog Product</strong>: name, description, images, categories, SEO metadata</li>
+        <li><strong>Orders Product</strong>: product ID, price at time of order, quantity — that's it</li>
+      </ul>
+      <p>Sharing a model couples two modules to the same change cycle. Orders stores a <em>snapshot</em> of the product at order time and subscribes to <em>ProductPriceChangedIntegrationEvent</em> if it needs updates.</p>
+      <div class="callout">Duplication in data models is acceptable and expected in DDD. Coupling is the real enemy.</div>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.19</span>
+      <span class="q-text">How do I test this properly? Where do I even start?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p>Test in three layers:</p>
+      <ul>
+        <li><em>Domain unit tests</em> — pure C#, no mocks, no DB. Verify business rules fire, invariants hold, domain events are raised. Fast and numerous.</li>
+        <li><em>Application integration tests</em> — real DB via test containers, run a full command through the pipeline, assert resulting state and published events.</li>
+        <li><em>Module contract tests</em> — verify integration events your module publishes match what consuming modules expect. Catches breaking changes early.</li>
+      </ul>
+      <div class="callout">Because Domain has no infrastructure dependencies, unit tests require zero setup. That's the reward for Persistence Ignorance.</div>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.20</span>
+      <span class="q-text">When is a Modular Monolith no longer the right choice?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p>Consider extracting a module into a microservice when you have <strong>specific, measurable pressure</strong>:</p>
+      <ul>
+        <li>A module needs to scale independently (high-traffic search module)</li>
+        <li>A module needs a completely different tech stack (ML engine in Python)</li>
+        <li>Different teams own different modules and deployment coupling causes real friction</li>
+        <li>A module has dramatically different availability or latency SLAs</li>
+      </ul>
+      <p>Because you enforced clear boundaries, data isolation, and async-only communication from the start — extraction is a matter of moving code and rewiring Event Bus connections externally.</p>
+      <div class="callout">A well-built Modular Monolith is a microservices architecture waiting to be extracted — not a legacy system to escape.</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ 07 ═══ -->
+  <div class="section-label"><span>07</span> Data &amp; Persistence</div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.21</span>
+      <span class="q-text">Each module has its own schema — but it's still one database, right? Is that a problem?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p>One database, <strong>separate schemas per module</strong> — and that's a valid starting point. The goal is logical isolation, not necessarily physical. Each module only reads and writes its own schema. No cross-schema joins. Benefits:</p>
+      <ul>
+        <li>Simpler ops — one DB to backup, monitor, and manage</li>
+        <li>No distributed transactions needed yet</li>
+        <li>Each module's schema can evolve independently</li>
+      </ul>
+      <p>If a module later needs its own database for scaling, you can move it cleanly because no other module was ever touching its tables.</p>
+      <div class="callout">Shared schema = modules that can secretly bypass each other's boundaries via SQL. Separate schemas make that impossible at the DB level.</div>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.22</span>
+      <span class="q-text">How do I handle database migrations? One project or one per module?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p><strong>One migration project per module.</strong> Each module owns its schema entirely — including how it evolves over time:</p>
+      <pre><span class="cm">// Module initialization runs its own migrations</span>
+<span class="kw">public static void</span> Initialize(...)
+{
+    ConfigureCompositionRoot(...);
+    <span class="cls">DatabaseMigrator</span>.Migrate(connectionString, schema: <span class="str">"orders"</span>);
+    <span class="cls">QuartzStartup</span>.Initialize(...);
+}</pre>
+      <p>Teams can ship schema changes to their module without coordinating with other teams. A single shared migration project is a hidden coupling mechanism — avoid it.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.23</span>
+      <span class="q-text">How do I map my domain objects to the database without leaking infrastructure into the domain?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p>Keep all mapping configuration in the <strong>Infrastructure layer</strong> using EF Core's <code>IEntityTypeConfiguration</code>:</p>
+      <pre><span class="kw">public class</span> <span class="cls">OrderEntityTypeConfiguration</span>
+    : <span class="cls">IEntityTypeConfiguration</span>&lt;<span class="cls">Order</span>&gt;
+{
+    <span class="kw">public void</span> Configure(<span class="cls">EntityTypeBuilder</span>&lt;<span class="cls">Order</span>&gt; builder)
+    {
+        builder.ToTable(<span class="str">"Orders"</span>, schema: <span class="str">"orders"</span>);
+        builder.HasKey(o => o.Id);
+        builder.OwnsOne(o => o.TotalPrice);  <span class="cm">// maps Value Object</span>
+        builder.HasMany(o => o.Items).WithOne();
+    }
+}</pre>
+      <p>The <code>Order</code> domain class has no EF attributes — no <code>[Column]</code>, no <code>[Key]</code>. It's a pure POCO. The mapping is 100% in Infrastructure.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.24</span>
+      <span class="q-text">Should I use the Repository pattern or just inject DbContext directly?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p><strong>Repository for writes (Commands). DbContext directly for reads (Queries).</strong></p>
+      <p>For Commands: a repository abstracts persistence, keeps the Application layer independent of EF Core, and makes domain logic testable:</p>
+      <pre><span class="cm">// Application layer — no EF dependency</span>
+<span class="kw">public interface</span> <span class="cls">IOrdersRepository</span>
+{
+    Task&lt;<span class="cls">Order</span>&gt; GetByIdAsync(<span class="cls">OrderId</span> id);
+    <span class="kw">void</span> Add(<span class="cls">Order</span> order);
+}</pre>
+      <p>For Queries: inject a read-only connection directly into the query handler and run a targeted SQL query. No domain model involved — no need for the abstraction overhead.</p>
+      <div class="callout">Repository = aggregates you load, modify, and save. Query handlers = raw data access for projections.</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ 08 ═══ -->
+  <div class="section-label"><span>08</span> Error Handling &amp; Resilience</div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.25</span>
+      <span class="q-text">How do I handle business rule violations? Do I throw exceptions from the domain?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p>Yes — but use a <strong>dedicated domain exception type</strong>, not a generic <code>Exception</code>:</p>
+      <pre><span class="kw">public void</span> Cancel()
+{
+    <span class="kw">if</span> (Status == <span class="cls">OrderStatus</span>.Shipped)
+        <span class="kw">throw new</span> <span class="cls">BusinessRuleValidationException</span>(
+            <span class="str">"Cannot cancel an order that has already been shipped."</span>
+        );
+
+    Status = <span class="cls">OrderStatus</span>.Cancelled;
+    AddDomainEvent(<span class="kw">new</span> <span class="cls">OrderCancelledDomainEvent</span>(Id));
+}</pre>
+      <p>The API's global exception middleware maps <code>BusinessRuleValidationException</code> to <strong>400 Bad Request</strong>, and infrastructure exceptions to 500. The mapping logic lives entirely outside the domain.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.26</span>
+      <span class="q-text">A downstream module's event handler fails — does the whole system break?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p>No — and this is a key benefit of async communication. If the Email module's handler fails, the order is still saved. The Event Bus retries delivery (configurable with exponential backoff). After max retries, the message goes to a <em>Dead Letter Queue (DLQ)</em> for manual inspection.</p>
+      <p>Because your Inbox Pattern makes handlers idempotent, retries are safe — processing the same event twice produces the same result.</p>
+      <div class="callout">Design every integration event handler to be idempotent. If the handler runs twice, it must produce the exact same outcome both times.</div>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.27</span>
+      <span class="q-text">How do I roll back changes if something fails mid-command?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p>The <strong>UnitOfWorkDecorator</strong> wraps the entire handler in a database transaction. If anything throws before <code>Commit()</code>, the transaction rolls back automatically:</p>
+      <pre>UnitOfWorkDecorator
+  → begins transaction
+  → handler runs (modifies aggregates)
+  → domain events dispatched
+  → if all OK: <span class="cls">UnitOfWork.Commit()</span>  <span class="cm">// persists everything atomically</span>
+  → if exception: <span class="warn">transaction rolls back</span>  <span class="cm">// nothing saved</span></pre>
+      <p>Never call <code>SaveChanges()</code> directly inside a handler. Let the decorator own the commit boundary. All or nothing.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.28</span>
+      <span class="q-text">How do I handle validation errors before they even reach the domain?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p>The <strong>ValidationDecorator</strong> runs before the handler using FluentValidation — checking input shape and basic rules:</p>
+      <pre><span class="kw">public class</span> <span class="cls">CreateOrderCommandValidator</span>
+    : <span class="cls">AbstractValidator</span>&lt;<span class="cls">CreateOrderCommand</span>&gt;
+{
+    <span class="kw">public</span> CreateOrderCommandValidator()
+    {
+        RuleFor(x => x.CustomerId).NotEmpty();
+        RuleFor(x => x.Items).NotEmpty()
+            .WithMessage(<span class="str">"Order must contain at least one item."</span>);
+        RuleForEach(x => x.Items)
+            .ChildRules(i => i.RuleFor(x => x.Quantity).GreaterThan(0));
+    }
+}</pre>
+      <p>If validation fails, a <code>ValidationException</code> is thrown immediately — the domain never executes, no DB round-trip wasted. The validator is the bouncer; the domain is the business inside.</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ 09 ═══ -->
+  <div class="section-label"><span>09</span> Team &amp; Real-World Concerns</div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.29</span>
+      <span class="q-text">My team uses the word "Order" to mean different things in different contexts. How do I handle this?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p>This is exactly what <strong>Ubiquitous Language</strong> solves. The same word can — and should — mean different things in different Bounded Contexts:</p>
+      <ul>
+        <li><em>Orders context</em>: items, total, status, shipping address</li>
+        <li><em>Finance context</em>: a payment record with invoice details</li>
+        <li><em>Warehouse context</em>: a pick-list of items to pull from shelves</li>
+      </ul>
+      <p>Each module has its own <code>Order</code> class. They share only an ID, passed via integration events. This is correct and intentional — don't try to unify them.</p>
+      <div class="callout">When two teams argue about what "Order" means, that's a signal they're in different Bounded Contexts. Split the word, not the team.</div>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.30</span>
+      <span class="q-text">How do I add a new feature that spans multiple modules?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p>You don't build a single cross-module feature — you build <strong>collaborating reactions</strong>. Each module does its part in response to events.</p>
+      <p>Example: "When a premium order is placed, upgrade loyalty tier and notify the warehouse."</p>
+      <pre>Orders module:
+  CreateOrderCommand → <span class="cls">PremiumOrderPlacedIntegrationEvent</span> published
+
+Customers module:
+  Subscribes → upgrades loyalty tier internally
+
+Warehouse module:
+  Subscribes → creates priority pick list</pre>
+      <p>No module knows what the others are doing. To add a new reaction (Notifications module), you just subscribe to the existing event — zero changes to existing code. <em>Open/Closed Principle at the architecture level.</em></p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.31</span>
+      <span class="q-text">How do I trace a request across modules for debugging?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p>Use <strong>Correlation IDs</strong>. Every incoming HTTP request gets a unique ID that is:</p>
+      <ul>
+        <li>Stored in the <em>ExecutionContext</em> — the current-user/request context passed to each module</li>
+        <li>Written to every log entry by the <em>LoggingDecorator</em></li>
+        <li>Attached to every integration event as a property</li>
+        <li>Passed through to any Internal Commands spawned during the request</li>
+      </ul>
+      <p>To trace a flow: filter your log aggregator (Seq, Kibana, Datadog) by correlation ID. You see the full chain across all modules — from the original HTTP request to every downstream event handler — as one linear trace.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.32</span>
+      <span class="q-text">How do I handle authorization? Does each module check permissions separately?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p>Authorization at <strong>two levels</strong>:</p>
+      <ul>
+        <li><em>API level (coarse-grained)</em> — controllers check authentication and role before forwarding commands. Standard ASP.NET Core <code>[Authorize]</code> attributes handle this.</li>
+        <li><em>Domain level (fine-grained)</em> — business rules encode ownership and permission logic: "only the order's owner can cancel it," "a warehouse manager can override stock."</li>
+      </ul>
+      <p>The user's identity is passed into each module via <em>IExecutionContextAccessor</em> — initialized at the API level and injected into handlers. The domain uses it to enforce ownership rules with zero dependency on HTTP or authentication infrastructure.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.33</span>
+      <span class="q-text">How do I handle a long-running process that spans multiple steps and modules?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p>Use a <strong>Saga (Process Manager)</strong> — a stateful coordinator that listens to events and issues commands to keep a long-running flow moving forward:</p>
+      <pre><span class="cls">OrderFulfillmentSaga</span>:
+
+1. Hears <span class="cls">OrderCreatedIntegrationEvent</span>
+   → sends <span class="cls">ReserveStockCommand</span> to Warehouse
+
+2. Hears <span class="cls">StockReservedIntegrationEvent</span>
+   → sends <span class="cls">ProcessPaymentCommand</span> to Payments
+
+3. Hears <span class="cls">PaymentProcessedIntegrationEvent</span>
+   → sends <span class="cls">ScheduleShipmentCommand</span> to Shipping
+
+<span class="cm">// On failure → compensating commands (e.g., release reserved stock)</span></pre>
+      <p>The Saga holds state of where the process is. If any step fails, it issues compensating actions. This replaces distributed transactions with <em>choreography through events</em>.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.34</span>
+      <span class="q-text">What lives in BuildingBlocks and what's the risk of it becoming a dumping ground?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p><strong>BuildingBlocks</strong> should contain only reusable <em>infrastructure abstractions</em> with no business domain specificity:</p>
+      <ul>
+        <li>Base classes: <code>Entity</code>, <code>AggregateRoot</code>, <code>ValueObject</code></li>
+        <li>CQRS interfaces: <code>ICommand</code>, <code>IQuery</code>, <code>ICommandHandler</code></li>
+        <li>Event Bus abstractions, Outbox/Inbox infrastructure, UnitOfWork, shared exceptions</li>
+      </ul>
+      <p><span class="warn">Never put there:</span> business logic, domain models, or module-specific types. The moment you add an <code>OrderStatus</code> enum to BuildingBlocks, every module is now coupled to Orders.</p>
+      <div class="callout">BuildingBlocks is the "toolkit shelf." If a module puts its domain objects there for convenience, challenge it immediately — it's a coupling smell.</div>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="question" onclick="toggle(this)">
+      <span class="q-number">Q.35</span>
+      <span class="q-text">How do I know if my module boundaries are correct? What are the warning signs they're wrong?</span>
+      <span class="q-icon">+</span>
+    </div>
+    <div class="answer">
+      <p>Warning signs your boundaries are wrong:</p>
+      <ul>
+        <li><span class="warn">Chatty event storms</span> — every small action in Module A fires an event that Module B immediately reacts to. They should be one module.</li>
+        <li><span class="warn">Shared aggregates</span> — two modules both need to modify the same entity. Ownership is unclear. Extract a new module or merge them.</li>
+        <li><span class="warn">Integration events carry domain objects</span> — your event payload looks like a rich domain model rather than a flat DTO. You're coupling consumers to your internals.</li>
+        <li><span class="warn">Teams coordinate schema changes constantly</span> — if two teams can't release independently, their modules are too tightly coupled.</li>
+        <li><span class="warn">A feature requires changing 4 modules at once</span> — the boundary is drawn in the wrong place.</li>
+      </ul>
+      <div class="callout">Good module boundaries let a single team make most changes entirely within their module. If cross-module changes are routine, restructure.</div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  function toggle(el) {
+    el.closest('.qa-card').classList.toggle('open');
+  }
+  function toggleTheme() {
+    const html = document.documentElement;
+    const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('mm-ddd-theme', next);
+  }
+  (function() {
+    const saved = localStorage.getItem('mm-ddd-theme');
+    if (saved) document.documentElement.setAttribute('data-theme', saved);
+  })();
+</script>
+</body>
+</html>
