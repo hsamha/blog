@@ -2,6 +2,8 @@
 
 # Production Softwre System
 
+[Questions & Answers](https://hsamha.github.io/blog/modular-monolith-ddd-qa.html)
+
 - Software architecture should always be created to resolve **specific business problems**. 
 - A lot of other factors influence your software architecture - your team, opinions, preferences, experiences, technical constraints, time, budget, etc.
 
