@@ -41,6 +41,7 @@ Feel free to explore my articles below. 🚀
 |   Title   |   Link    |
 |   :---    |   :----:  |
 |   Interview - Senior |   [read](./interview_senior.md)  |
+|   LangGraph |   [read](./langgraph.md)  |
 |   Human in the Loop |   [read](./human_in_loop.md)  |
 |   Rag Testing |   [read](./rag_testing.md)  |
 |   Audit Trail in ASPNET |   [read](./audit_trail.md)  |
